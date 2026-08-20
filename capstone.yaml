@@ -1,0 +1,25 @@
+name: usage-metering-billing-engine
+run: docker compose up --build
+seed: docker compose exec api python -m scripts.seed
+test: docker compose exec api pytest tests/ -v
+base_url: http://localhost:8000
+
+endpoints:
+  - method: GET
+    path: /health
+    auth: none
+  - method: POST
+    path: /generate
+    auth: X-API-Key header
+    headers_required: ["Idempotency-Key"]
+    body_example: { "type": "api_call" }
+  - method: GET
+    path: /usage
+    auth: X-API-Key header
+  - method: POST
+    path: /billing/checkout
+    auth: X-API-Key header
+    body_example: { "plan": "pro" }
+  - method: POST
+    path: /webhooks/stripe
+    auth: Stripe-signed request (stripe-signature header)
